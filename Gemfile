@@ -3,4 +3,9 @@
 source 'https://rubygems.org'
 
 gem 'lights'
-gem 'rubocop', require: false
+
+group :development, :test do
+  gem 'pry'
+  gem 'rspec'
+  gem 'rubocop', require: false
+end

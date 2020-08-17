@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'pry'
+require_relative '../beta'
+
+beta = Beta.new
+
+binding.pry  # rubocop:disable Lint/Debugger
