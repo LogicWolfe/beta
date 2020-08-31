@@ -20,18 +20,25 @@ class Beta
     18 => :four
   }
 
-  attr_reader :client
+  attr_reader :hue_client
 
   def initialize
-    @client = Lights.new(HUE_IP, HUE_USERNAME)
+    @hue_client = Lights.new(HUE_IP, HUE_USERNAME)
     @sensors = {}
     start_sensor_loop!
+  end
+
+  def log(msg, properties={})
+    puts({
+      :message => msg,
+      :properties => properties
+    })
   end
 
   def update_sensors!
     old_sensors = @sensors
     updated_sensors = {}
-    new_sensors = client.request_sensor_list
+    new_sensors = hue_client.request_sensor_list
     SWITCHES.each do |name, selector|
       updated_sensors[name] = new_sensors.values.find do |hash|
         selector.all? { |key, value| hash[key] == value }
@@ -55,18 +62,24 @@ class Beta
       loop do
         update_sensors!
         sleep 0.2
+      rescue Errno::ECONNRESET => e
+        log("Hue connection reset, retrying.")
+        retry
       end
     end
   end
 
   def sensors
-    client.request_sensor_list
+    hue_client.request_sensor_list
   end
 
   def sensor_state_change!(name, old_state:, new_state:)
-    message = "Button pressed! switch=#{name} button=#{BUTTONS[new_state["state"]["buttonevent"]]}"
+    button = BUTTONS[new_state["state"]["buttonevent"]]
+    message = "Button pressed! switch=#{name} button=#{button}"
     `say #{message}`
-    puts message
+    log("Button pressed!", {switch: name, button: button})
+    if (name == :studio && button == :off)
+    end
   end
 
   def switch(name)
